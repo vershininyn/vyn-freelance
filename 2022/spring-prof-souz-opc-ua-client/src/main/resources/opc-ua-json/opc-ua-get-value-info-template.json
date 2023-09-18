@@ -1,0 +1,7 @@
+{
+  "Header": {
+    "MessageType":"VALUEINFO_REQUEST",
+    "ClientHandle":"1"
+  },
+  "Body": { "Variables" : []}
+}

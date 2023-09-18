@@ -1,0 +1,51 @@
+server:
+  port: 9090
+  address: 127.0.0.1 #//TODO: change when move it to container
+  servlet:
+    context-path: /
+
+opc-ua-spring-client:
+  #xml-filepath: ${xml-filepath:/home/dev/projects/java/spring-prof-souz-opc-ua-client/template.xml}
+  wss-host: ${wss-host:0.0.0.0}
+  wss-port: ${wss-port:8080}
+
+app:
+  swagger:
+    title: test
+    description: test
+    version: 1.0
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:opc-ua-xml-db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;
+    type: com.zaxxer.hikari.HikariDataSource
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    generate-ddl: true
+    defer-datasource-initialization: true
+
+
+local:
+  server:
+    port: 1024
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: DEBUG
+  com:
+    zaxxer:
+      hikari:
+        HikariConfig: DEBUG
+

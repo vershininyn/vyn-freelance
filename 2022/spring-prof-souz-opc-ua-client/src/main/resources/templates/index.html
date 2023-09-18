@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" xmlns:th="http://www.thymeleaf.org">>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"
+            integrity="sha512-3gJwYpMe3QewGELv8k/BX9vcqhryRdzRMxVfq6ngyWXwo03GFEzjsUm8Q7RZcHPHksttq7/GFoxjCVUjkjvPdw=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer">
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscore-min.js"
+            integrity="sha512-2V49R8ndaagCOnwmj8QnbT1Gz/rie17UouD9Re5WxbzRVUGoftCu5IuqqtAM9+UC3fwfHCSJR1hkzNQh/2wdtg=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer">
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+            integrity="sha512-Xo0Jh8MsOn72LGV8kU5LsclG7SUzJsWGhXbWcYs2MAmChkQzwiW/yTQwdJ8w6UA9C6EVG18GHb/TrYpYCjyAQw=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer">
+    </script>
+
+    <script th:src="@{/js/index.js}"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+          integrity="sha512-KXol4x3sVoO+8ZsWPFI/r5KBVB/ssCGB5tsv2nVOKwLg33wTFP3fmnXa47FdSVIshVTgsYk/1734xSk9aFIa4A=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"/>
+
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+
+    <link rel="stylesheet" th:href="@{/css/tree-table.css}">
+</head>
+<body>
+<div class="ui two column centered aligned grid">
+    <div class="eleven wide column">
+        <div class="ui basic segment">
+            <div class="ui large label">
+                opc.tcp://
+            </div>
+            <div class="ui large label">
+                host:
+            </div>
+            <div class="ui small input">
+                <input type="text" placeholder="Please enter ASNeG host..." id="wss-host">
+            </div>
+            <div class="ui large label">
+                port:
+            </div>
+            <div class="ui small input">
+                <input type="text" placeholder="Please enter ASNeG port..." id="wss-port">
+            </div>
+            <div class="ui large label">
+                xml-filepath:
+            </div>
+            <div class="ui small input">
+                <input type="text" placeholder="Please enter xml filepath..." id="xml-filepath" style="width: 100mm;">
+            </div>
+            <button class="small green ui labeled icon button" id="connect-disconnect-button" isConnected="false">
+                <!--<i class="loading spinner icon"></i>-->
+                Connect
+            </button>
+        </div>
+    </div>
+    <div class="four column centered row">
+        <div class="ui basic segment">
+            <div class="ui two column stackable center aligned grid">
+                <div class="ui vertical divider"></div>
+                <div class="middle aligned row">
+                    <div class="eight wide column">
+                        <h3 class="ui center aligned header">
+                            Download selected tag's
+                        </h3>
+                        <div class="container">
+                            <div class="tree-table-wrap">
+                                <table class="tree-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Choose for download tag's</th>
+                                            <th>#</th>
+                                            <th>Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="download-table-tree">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <button class="right floated small green ui labeled icon button">
+                            <!--<i class="loading spinner icon"></i>-->
+                            Download
+                        </button>
+                    </div>
+                    <div class="eight wide column">
+                        <h3 class="ui center aligned header">
+                            Subscribe to selected tags or change the tag's value
+                        </h3>
+                        <div class="container">
+                            <div class="upload-tree-table-wrap">
+                                <table class="upload-tree-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Choose for subscribe or change tag's</th>
+                                        <th>#</th>
+                                        <th>Value</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="upload-table-tree">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <button class="ui small icon labeled green left attached left floated button">
+                            <!--<i class="loading spinner icon"></i>-->
+                            Subscribe
+                        </button>
+                        <button class="ui small icon labeled green right attached left floated button">
+                            <!--<i class="loading spinner icon"></i>-->
+                            Upload values
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="node-body-template" style="display: none;">
+    <tr data-id="" data-parent="" data-level="">
+        <td data-column="name"></td>
+        <td>
+            <div class="ui fluid input">
+                <input type="text" placeholder="Enter value..." value="">
+            </div>
+        </td>
+    </tr>
+</div>
+
+<div class="ui modal">
+    <i class="close icon"></i>
+    <div class="header">
+        Connection status
+    </div>
+    <div class="content" id="verify-host-and-port-and-xml">
+
+    </div>
+    <div class="actions">
+        <div class="ui approve green right labeled icon button">
+            Close
+            <i class="checkmark icon"></i>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

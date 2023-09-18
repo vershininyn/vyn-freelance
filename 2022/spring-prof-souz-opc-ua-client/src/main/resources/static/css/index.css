@@ -1,0 +1,12 @@
+div.centered:nth-child(1) {
+    margin-top: 15rem;
+}
+
+.inputfile {
+	width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}

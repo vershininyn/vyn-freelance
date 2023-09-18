@@ -1,0 +1,1 @@
+TRUNCATE TABLE opc_ua_xml_filepath_table

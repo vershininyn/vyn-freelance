@@ -1,0 +1,7 @@
+{
+  "Header": {
+    "MessageType":"VALUELIST_REQUEST",
+    "ClientHandle":"1"
+  },
+  "Body": {}
+}

@@ -1,0 +1,22 @@
+version: '3.7'
+
+services:
+  postgresql:
+    image: postgres:12.7-alpine
+    container_name: database
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data:rw
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis
+    restart: always
+    command: redis-server --requirepass secret
+    ports:
+      - 6389:6389
+    volumes:
+      - ./redis-data:/data

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+    <changeSet id="2022-07-11-user-sequence" author="Vershinin Yaroslav" labels="release">
+        <createSequence cacheSize="65536"
+                        cycle="true"
+                        dataType="INT"
+                        incrementBy="1"
+                        maxValue="65536"
+                        minValue="1"
+                        schemaName="public"
+                        sequenceName="user_sequence"
+                        startValue="1"/>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,39 @@
+version: '3.5'
+
+networks:
+  vpcbr:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 173.19.0.0/8
+
+services:
+  cdek-cities-data-source-service:
+    restart: always
+    container_name: cdek-cities-data-source-service
+    build:
+      context: ./
+    networks:
+      vpcbr:
+        ipv4_address: 173.19.0.2
+    ports:
+      - "8080:8080"
+
+  #TODO: определить имя предопределенной очереди сообщений
+
+  cdek-cities-artemis-queue:
+    restart: always
+    container_name: cdek-cities-artemis-queue
+    image: vromero/activemq-artemis:latest-alpine
+    networks:
+      vpcbr:
+        ipv4_address: 173.19.0.3
+    environment:
+      ARTEMIS_USERNAME: admin
+      ARTEMIS_PASSWORD: admin
+    ports:
+      - "61616:61616"
+      - "8161:8161"
+
+
+

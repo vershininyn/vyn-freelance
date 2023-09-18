@@ -1,0 +1,10 @@
+version: '3.5'
+services:
+  customer-service:
+    image: ./apiship-service
+    container_name: apiship-service
+    build:
+      context: ./apiship-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"

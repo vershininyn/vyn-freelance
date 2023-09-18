@@ -1,0 +1,8 @@
+server:
+  port: 8080
+  address: 127.0.0.1
+  servlet:
+    context-path: /api
+
+jwt:
+  secret: 63bfe65308090f10b39032e1405089e6c17ac31d2f5658a10b872e50dc1127793e611563b08381ca5ec57b4556e5f45a7c341d3443464dafe4fe96c2344554ad

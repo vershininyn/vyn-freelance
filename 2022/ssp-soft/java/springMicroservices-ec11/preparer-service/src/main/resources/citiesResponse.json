@@ -1,0 +1,109 @@
+{
+  "rows": [
+    {
+      "fiasGuid": null,
+      "fullName": "Гриффитвилл, Арканзас",
+      "cityUuid": "0000197e-76f2-5de4-b5dd-f6d680727d79",
+      "cdekId": "862872",
+      "cityName": "Гриффитвилл",
+      "oblName": "Арканзас",
+      "countryCode": "US",
+      "codCostLimit": "-1"
+    },
+    {
+      "fiasGuid": null,
+      "fullName": "Трояново, Минская обл.",
+      "cityUuid": "00003b16-cb71-573a-92ad-eceac87aa1e1",
+      "cdekId": "38254",
+      "cityName": "Трояново",
+      "oblName": "Минская обл.",
+      "countryCode": "BY",
+      "codCostLimit": "0"
+    },
+    {
+      "fiasGuid": null,
+      "fullName": "Копысица, Могилевская обл.",
+      "cityUuid": "0001c4f8-c3bb-5213-ba74-0c6400a54e6e",
+      "cdekId": "40511",
+      "cityName": "Копысица",
+      "oblName": "Могилевская обл.",
+      "countryCode": "BY",
+      "codCostLimit": "0"
+    },
+    {
+      "fiasGuid": null,
+      "fullName": "Нью-Маркет, Айова",
+      "cityUuid": "000203bd-62ef-56f3-bba7-ca1b03dc2385",
+      "cdekId": "860185",
+      "cityName": "Нью-Маркет",
+      "oblName": "Айова",
+      "countryCode": "US",
+      "codCostLimit": "-1"
+    },
+    {
+      "fiasGuid": null,
+      "fullName": "Нижнее Брагино, Пермский край",
+      "cityUuid": "0002b410-ec2a-58e4-850a-3d879c3dc7c6",
+      "cdekId": "82186",
+      "cityName": "Нижнее Брагино",
+      "oblName": "Пермский край",
+      "countryCode": "RU",
+      "codCostLimit": "-1"
+    },
+    {
+      "fiasGuid": null,
+      "fullName": "Лоймола, Карелия респ.",
+      "cityUuid": "0002c430-f0b0-5026-80ee-c5e0c6fba365",
+      "cdekId": "52096",
+      "cityName": "Лоймола",
+      "oblName": "Карелия респ.",
+      "countryCode": "RU",
+      "codCostLimit": "0"
+    },
+    {
+      "fiasGuid": null,
+      "fullName": "Кинкейд, Западная Виргиния",
+      "cityUuid": "000303d9-36b7-50d0-b2a0-753c2173d279",
+      "cdekId": "865763",
+      "cityName": "Кинкейд",
+      "oblName": "Западная Виргиния",
+      "countryCode": "US",
+      "codCostLimit": "-1"
+    },
+    {
+      "fiasGuid": null,
+      "fullName": "Бутусово, Тюменская обл.",
+      "cityUuid": "00030b70-a673-5910-85c4-d8066f256d29",
+      "cdekId": "23915",
+      "cityName": "Бутусово",
+      "oblName": "Тюменская обл.",
+      "countryCode": "RU",
+      "codCostLimit": "0"
+    },
+    {
+      "fiasGuid": null,
+      "fullName": "Топпенштедт, Нижняя Саксония",
+      "cityUuid": "000344ea-53c8-586b-9558-c58b70379430",
+      "cdekId": "72038",
+      "cityName": "Топпенштедт",
+      "oblName": "Нижняя Саксония",
+      "countryCode": "DE",
+      "codCostLimit": "0"
+    },
+    {
+      "fullName": "Молоди, Московская обл.",
+      "cityUuid": "000356e3-589f-5ca3-a406-48c8260de7c1",
+      "cdekId": "43870",
+      "cityName": "Молоди",
+      "oblName": "Московская обл.",
+      "cityGuid": "ad4409ca-6afc-4d6a-9926-74e9c4e4d13f",
+      "countryCode": "RU",
+      "codCostLimit": "-1"
+    }
+  ],
+  "meta": {
+    "total": 93925,
+    "offset": 0,
+    "limit": 10
+  }
+}

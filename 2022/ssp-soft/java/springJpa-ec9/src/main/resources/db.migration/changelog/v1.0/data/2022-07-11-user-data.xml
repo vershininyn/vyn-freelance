@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+    <changeSet id="2022-07-11-user-data" author="Vershinin Yaroslav" labels="release">
+        <sql>
+            INSERT INTO "user"("id", "login", "email", "password", "registration_date_and_time")
+            VALUES(1, 17279, '1234@gmail.com', '$2a$10$HQtjZnlwHM94EiPCarg6a.ZUhtLoK2rTxvWxqp6jWY.VnyAkE0Vfi', '2022-07-13 14:31:18.043');
+
+            INSERT INTO "user"("id", "login", "email", "password", "registration_date_and_time")
+            VALUES(2, 17280, 'admin@gmail.com', '$2a$10$zHLk7/fmrv.up1nb0UPb0ee0w6yP2abA37CczwSvKFxQX8P6gVVem', '2022-07-13 14:31:18.043');
+        </sql>
+    </changeSet>
+</databaseChangeLog>

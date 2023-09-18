@@ -1,0 +1,8 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+app-ship:
+  url: "https://api.apiship.ru/v1/"
+  timeout: 10

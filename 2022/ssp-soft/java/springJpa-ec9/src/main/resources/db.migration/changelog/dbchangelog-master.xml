@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+    <include file="db.migration/changelog/v1.0/relations/2022-07-11-user-role-relation.xml"/>
+
+    <include file="db.migration/changelog/v1.0/relations/2022-07-11-role-relation.xml"/>
+    <include file="db.migration/changelog/v1.0/relations/2022-07-11-user-relation.xml"/>
+
+    <include file="db.migration/changelog/v1.0/foreign-keys/2022-07-11-user-relation-foreign-key.xml"/>
+
+    <include file="db.migration/changelog/v1.0/sequences/2022-07-11-role-sequence.xml"/>
+    <include file="db.migration/changelog/v1.0/sequences/2022-07-11-user-sequence.xml"/>
+
+    <include file="db.migration/changelog/v1.0/data/2022-07-11-role-data.xml"/>
+    <include file="db.migration/changelog/v1.0/data/2022-07-11-user-data.xml"/>
+    <include file="db.migration/changelog/v1.0/data/2022-07-11-user-role-data.xml"/>
+</databaseChangeLog>

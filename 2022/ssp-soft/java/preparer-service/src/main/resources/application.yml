@@ -1,0 +1,18 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  artemis:
+    mode: native
+    broker-url: tcp://localhost:61616
+    user: admin
+    password: admin
+
+apiship:
+  url: https://api.apiship.ru/v1
+  timeout: 10
+  queue: ART.EC.APISHIP.JSON
+  cities:
+    limit: 268

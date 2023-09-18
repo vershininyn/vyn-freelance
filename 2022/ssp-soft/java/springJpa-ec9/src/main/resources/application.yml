@@ -1,0 +1,35 @@
+server:
+  port: 8080
+  address: 127.0.0.1
+  servlet:
+    context-path: /api
+
+jwt:
+  secret: c2e776804edfd973a9fc501bd61e477912299d433da163d6a0d80b8a4b80f1f556ce20da8277ee858f142cfcd515b3ad6afc5cf1895ca3a724110cd0d92db27ac7892830c8fd05ffbba5cc7995d1399969a3333ae0f37e7b22f5f952bfb1ed50756ba7d4b4ccb3c233371674f2305c9dc61adc9d6a3bc2724fbd82bd75516596
+
+spring:
+  redis:
+    database: 0
+    host: localhost
+    port: 6389
+    password: secret
+  cache:
+    type: redis
+    redis:
+      time-to-live: 1800000
+  liquibase:
+    change-log: db/changelog/dbchangelog-master.xml
+    enabled: true
+    drop-first: true
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:postgresql://172.22.0.2:5432/postgres
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: secret
+    hikari:
+      idle-timeout: 10000

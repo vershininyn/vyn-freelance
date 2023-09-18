@@ -1,0 +1,20 @@
+spring:
+  profiles:
+    active: dev
+  http:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
+
+server:
+  port: 8191
+  address: 0.0.0.0
+  servlet:
+    context-path: /api
+
+app:
+  swagger:
+    title: test
+    description: test
+    version: 1.0
+  fileUploadPath: /home/dev/projects/java/ssp-soft/file.dat

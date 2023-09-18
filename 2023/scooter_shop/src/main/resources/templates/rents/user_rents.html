@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Арендованные самокаты</title>
+
+    <meta th:if="${_csrf} != null" th:name="_csrf" th:content="${_csrf.token}"/>
+    <meta th:if="${_csrf} != null" th:name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.js"></script>
+
+	<script src="https://cdn.jsdelivr.net/npm/underscore@1.13.6/underscore-min.min.js"></script>
+
+    <link rel="stylesheet" href="/index.css">
+
+
+    <!--								!async function () {-->
+    <!--									let promise = new Promise((resolve, reject) => {-->
+    <!--    									let stopResult = await stopScooterRentOnApproveHandler(scooter_id, scooter_user_id, scooter_rent_duration_at_minutes);-->
+    <!--    									resolve(stopResult);-->
+    <!--  									});-->
+    <!--     								return await promise;-->
+    <!--								}().then(el => {-->
+    <!--									alert('++++' + el);-->
+    <!--								});-->
+
+    <script>
+        var token = $("meta[name='_csrf']").attr("content");
+        var header = $("meta[name='_csrf_header']").attr("content");
+
+        var onSuccessStopScooterRentProcessId = null;
+        var countDownMaxSteps = 5;
+        var countDownCurrentStep = countDownMaxSteps;
+
+        var WHITE_COLOR = "white";
+        var RED_COLOR = "red";
+
+		var onHMSTimeFromRentStartHeartbeatIntervalId = null;
+
+		var minOpacity = 0.0;
+        var maxOpacity = 1.0;
+        var currentOpacity = 0.0;
+
+        var heartbeatFasterModeValue = 1;
+        var heartbeatSlowModeValue = 10;
+
+        var heartbeatPeriodMap = null;
+
+        $(function() {
+            startHeartbeatProcess(heartbeatFasterModeValue);
+
+            $('#user-rents-form').form({
+                fields: {
+                    regex: {
+                        identifier  : 'regex',
+                        optional    : false,
+                        rules: [{
+                            type    : 'regExp[/^[0-9]{10}/]',                         
+                            prompt  : 'Длина номера карты должна быть строго равна 10!'
+                        }]
+                    },
+                    decimal: {
+                        identifier  : 'decimal',
+                        optional    : false,
+                        rules: [{
+                            type   : 'regExp[/^([0-9]*[1-9][0-9]*([.][0-9]+)?|[0]+[.][0-9]*[1-9][0-9]*)$/]',
+                            prompt : 'Сумма пополнения (должна быть строго больше 0.0) и (быть полноопределенной)!'
+                        }]
+                    }                           
+                }
+            });
+        });
+
+        if ((token) && (header)) {
+            $(document).on("ajaxSend", (event, jqxhr, settings) => {
+                console.log('token = ' + token + ' header = ' + header);
+                jqxhr.setRequestHeader(header, token);
+            });
+        }
+
+        var dynamicStopScooterRentByChargeProcessMap = {};
+
+        var startDynamicStopScooterRentByChargeProcess = (index, userId, durationAtMinutes) => {
+            let obj_index = "dynamic-scooter-obj-" + index;
+
+            if (!dynamicStopScooterRentByChargeProcessMap[obj_index]) {
+                dynamicStopScooterRentByChargeProcessMap[obj_index] = {'id': index, 
+                                            'countDownScooterChargeProcessCurrentStep': 5, 
+                                            'user_id': userId, 
+                                            'duration_at_minutes': durationAtMinutes};
+
+                console.log(dynamicStopScooterRentByChargeProcessMap);
+
+                dynamicStopScooterRentByChargeProcessMap[obj_index]['handler'] = () => {
+                    let currentStep = dynamicStopScooterRentByChargeProcessMap[obj_index]['countDownScooterChargeProcessCurrentStep'];
+
+                    let uStopRentSelector = '#main_scooter_dynamic_stop_seconds-id-' + dynamicStopScooterRentByChargeProcessMap[obj_index]['id'];
+
+                    $(uStopRentSelector).text('Заряд иссяк. Завершение через: (' + currentStep + ' из 5)');
+                    $(uStopRentSelector).removeAttr('style');
+
+                    let modalStopRentSelector = '#modal_scooter_dynamic_stop_seconds';
+
+                    $(modalStopRentSelector + ' > h4 > b').text('(' + currentStep + ' из 5)');
+                    $(modalStopRentSelector).removeAttr('style');
+                    $('#stop_scooter_rent_button').addClass('disabled');
+
+                    if (dynamicStopScooterRentByChargeProcessMap[obj_index]['countDownScooterChargeProcessCurrentStep'] <= 0) {
+                        $(uStopRentSelector).text('');
+                        $(uStopRentSelector).attr('style', 'display: none');
+
+                        $(modalStopRentSelector + ' > h4 > b').text('');
+                        $(modalStopRentSelector).attr('style', 'display: none');
+                        $('#stop_scooter_rent_button').removeClass('disabled');
+
+                        stopDynamicStopScooterRentByChargeProcess(dynamicStopScooterRentByChargeProcessMap[obj_index]);
+                    } else {
+                        dynamicStopScooterRentByChargeProcessMap[obj_index]['countDownScooterChargeProcessCurrentStep'] = currentStep - 1;
+                    }
+                }
+
+                dynamicStopScooterRentByChargeProcessMap[obj_index]['pid'] = setInterval(dynamicStopScooterRentByChargeProcessMap[obj_index]['handler'], 1000);
+            }
+        }
+
+        var stopDynamicStopScooterRentByChargeProcess = (dynamic_scooter_obj) => {
+            let obj_index = "dynamic-scooter-obj-" + dynamic_scooter_obj['id'];
+
+            if (dynamic_scooter_obj) {
+                $.post("/heartbeat_rents/" + dynamic_scooter_obj['id'] + "/stop", 
+                    $.param({user_id: dynamic_scooter_obj['user_id'], rent_duration: dynamic_scooter_obj['duration_at_minutes']})
+                ).then(result => {
+                    clearInterval(dynamic_scooter_obj['pid']);
+                    delete dynamicStopScooterRentByChargeProcessMap[obj_index];
+                    window.location.href = "/rents";
+                });
+            }
+        }
+
+        var startHeartbeatProcess = (heartbeatIntervalSeconds) => {
+        	if (!onHMSTimeFromRentStartHeartbeatIntervalId) {
+            	onHMSTimeFromRentStartHeartbeatIntervalId = setInterval(onHMSTimeFromRentStartHeartbeatHandler, 1000*heartbeatIntervalSeconds);
+            }
+        }
+
+        var stopHeartbeatProcess = () => {
+        	if (onHMSTimeFromRentStartHeartbeatIntervalId) {
+            	clearInterval(onHMSTimeFromRentStartHeartbeatIntervalId);
+                onHMSTimeFromRentStartHeartbeatIntervalId = null;
+            }
+        }
+
+        var onHMSTimeFromRentStartHeartbeatHandler = () => {
+            let hms_time_from_rent_scooter_start_ids = _.map($('.hms_time_from_rent_start'), (item) => {
+                return parseInt($(item).attr('id').replace("main-scooter-heartbeat-id-",""), 10);
+            });
+
+            if (_.isEmpty(hms_time_from_rent_scooter_start_ids)) {
+                return 0;
+            }
+
+<!--            (async () => {-->
+<!--            jQuery.post( url [, data ] [, success ] [, dataType ] )-->
+<!--                let ajaxResult = await $.post("/heartbeat_rents/getHMSScootersHeartbeatRentTime",-->
+<!--                                                JSON.stringify({scooters_long_ids: hms_time_from_rent_scooter_start_ids}),-->
+<!--                                                (data, textStatus, jqXHR) => {},'json').then();-->
+
+<!--                return ajaxResult;-->
+<!--            })().then(map => {-->
+<!--                console.log('map = ' + map);-->
+<!--            });-->
+
+<!--            console.log({scooters_long_ids: hms_time_from_rent_scooter_start_ids});-->
+<!--            console.log(JSON.stringify({scooters_long_ids: hms_time_from_rent_scooter_start_ids}));-->
+
+            $.ajax({
+                type: "POST",
+                contentType : 'application/json;charset=UTF-8',
+                dataType : 'json',
+                url: "/heartbeat_rents/getHMSScootersHeartbeatRentTime",
+                data: JSON.stringify({scooters_long_ids: hms_time_from_rent_scooter_start_ids}),
+                async: true,
+                success: function(jsonMap) {
+                    let map = jsonMap['map'];
+                    heartbeatPeriodMap = map;
+
+                    _.each(map, (element, index, list) => {
+                        $("#main-scooter-heartbeat-id-" + index).text("Время аренды (ч:м:с): " + element['nowRelativeToStartPeriod']);
+                        $("#main-scooter-heartbeat-spent-money-" + index).text('Текущая стоимость аренды (руб./мин.): ' + element['spentMoney']);
+
+                        let currentCharge = element['currentCharge'];
+
+                        if (currentCharge <= 0.0) {
+                            startDynamicStopScooterRentByChargeProcess(index, element['userId'], element['durationAtMinutes']);
+                        }
+
+/*                                            <span class="ui big red text" 
+                                                style="display: none" 
+                                                th:id="main_user_balance_stop_message" 
+                                                th:text="'Баланса не хватает для аренды. Заверешние через '" >
+                                                <b><u></u></b>
+                                            </span>*/
+
+                        $("#main_scooter_current_charge-id-" + index).text("Заряд (ед.): " + currentCharge.toFixed('2'));
+                    });
+                },
+                error: function (jqXHR, exception) {
+                    stopHeartbeatProcess();
+                    startHeartbeatProcess(heartbeatSlowModeValue);
+                }
+            });
+        };
+
+        var stopRentStatusBlinkHandle = () => {
+            let opacityIncrement = 0.0;
+
+            if (currentOpacity <= minOpacity) {
+                opacityIncrement = 0.01;
+                currentOpacity = minOpacity;
+            }
+
+            if (currentOpacity >= maxOpacity) {
+                opacityIncrement = -0.01;
+                currentOpacity = maxOpacity;
+            }
+
+            while ((currentOpacity >= minOpacity) && (currentOpacity <= maxOpacity)) {
+                (function(newOpacityValue) {
+                    setTimeout(function() { $('#modal_scooter_stop_rent_status').css('opacity', newOpacityValue); }, 60 + currentOpacity * 400);
+                })(currentOpacity);
+
+                currentOpacity = currentOpacity + opacityIncrement;
+            }
+        };
+
+        var stopScooterRentProcessHandler = () => {
+            $('#stop_scooter_rent_button').text('Завершить ('+countDownCurrentStep+' из '+countDownMaxSteps+')');
+
+            stopRentStatusBlinkHandle();
+
+            if (countDownCurrentStep <= 0) {
+                stopStoppingScooterRentProcess();
+
+                $('#stop_scooter_rent_button').text('Завершить');
+                $('#modal_scooter_stop_rent_status').css('background-color', '#ffd633');
+
+                countDownCurrentStep = countDownMaxSteps;
+                onSuccessStopScooterRentProcessId = null;
+            } else {
+                countDownCurrentStep = countDownCurrentStep - 1;
+            }
+        };
+
+        var applyScooterRentStopByScooterId = async (scooter_id, scooter_user_id, scooter_rent_duration_at_minutes) => {
+            $('#scooter-active-div').addClass('inverted dimmer');
+            $('#scooter-loader').removeClass('disabled');
+
+            let ajaxResult = await $.post("/heartbeat_rents/" + scooter_id + "/stop",
+                                        $.param({user_id: scooter_user_id, rent_duration: scooter_rent_duration_at_minutes})).then();
+
+            $('#scooter-active-div').removeClass('inverted dimmer');
+            $('#scooter-loader').addClass('disabled');
+
+            return ajaxResult === 'OK';
+        };
+
+        var startStoppingScooterRentProcess = () => {
+             if (!onSuccessStopScooterRentProcessId) {
+                onSuccessStopScooterRentProcessId = setInterval(stopScooterRentProcessHandler, 1000);
+            }
+        }
+
+        var stopStoppingScooterRentProcess = () => {
+            if (onSuccessStopScooterRentProcessId) {
+                clearInterval(onSuccessStopScooterRentProcessId);
+                onSuccessStopScooterRentProcessId = null;
+            }
+        }
+
+        var stopScooterRentOnApproveHandler = async (scooter_id,
+                                                    scooter_user_id,
+                                                    scooter_rent_duration_at_minutes) => {
+            let stopScooterRentIsOk = await applyScooterRentStopByScooterId(scooter_id, scooter_user_id, scooter_rent_duration_at_minutes);
+
+            if (!stopScooterRentIsOk) {
+                return false;
+            }
+
+            $('#stop_scooter_rent_button').addClass('disabled');
+
+            startStoppingScooterRentProcess();
+
+            $('#modal_scooter_stop_rent_status > h4 > b').text('ДА');
+            $('#modal_scooter_stop_rent_status').css("background-color", "red");
+
+            let newModalScooterSpentTotalMoneyValue = $('#modal_scooter_spent_money').text();
+
+            $('#modal_scooter_spent_total_money_value').text(newModalScooterSpentTotalMoneyValue);
+            $('#modal_scooter_spent_total_money').removeAttr('style');
+
+            let promise = new Promise((resolve, reject) => {
+                setTimeout(() => resolve(!onSuccessStopScooterRentProcessId), 1000*(countDownMaxSteps + 1));
+            });
+
+            const result = await promise;
+
+            $('#modal_scooter_stop_rent_status > h4 > b').text('НЕТ');
+            $('#modal_scooter_stop_rent_status').css("background-color", "#ffd633");
+
+            $('#modal_scooter_spent_total_money').attr('style', 'display: none');
+            $('#stop_scooter_rent_button').removeClass('disabled');
+            $('#modal_scooter_spent_total_money_value').text('0.00');
+
+            return result;
+        };
+
+        var global_heartbeat_scooter_id = null;
+        var heartbeatScooterUpdateTimeProcessId = null;
+
+        var heartbeatUpdateTimeRentHandler = () => {
+            if (global_heartbeat_scooter_id in heartbeatPeriodMap) {
+                let heartbeat_text = heartbeatPeriodMap[global_heartbeat_scooter_id]['nowRelativeToStartPeriod'];
+                let heartbeat_spent_money = heartbeatPeriodMap[global_heartbeat_scooter_id]['spentMoney'];
+                let heartbeat_current_charge = (heartbeatPeriodMap[global_heartbeat_scooter_id]['currentCharge']).toFixed('2');
+
+                $('#modal_scooter_rent_duration').text(heartbeat_text);
+                $('#modal_scooter_spent_money').text(heartbeat_spent_money);
+                $('#modal_scooter_charge').text(heartbeat_current_charge);
+            }
+        }
+
+        var startHeartbeatScooterUpdateTimeProcess = (scooter_id) => {
+            if (!heartbeatScooterUpdateTimeProcessId) {
+                global_heartbeat_scooter_id = scooter_id;
+                heartbeatScooterUpdateTimeProcessId = setInterval(heartbeatUpdateTimeRentHandler, 1000);
+            }
+        }
+
+        var stopHeartbeatScooterUpdateTimeProcess = () => {
+            if (heartbeatScooterUpdateTimeProcessId) {
+                clearInterval(heartbeatScooterUpdateTimeProcessId);
+            }
+        }
+
+        var stopScooterRentShowModalDialog = (scooter_id,
+                                                scooter_user_id,
+                                                scooter_rent_duration_at_minutes,
+                                                scooter_title,
+                                                scooter_charge,
+                                                scooter_started_date_time_rent,
+                                                scooter_spent_money) => {
+            $('#modal_scooter_name').text(scooter_title);
+            $('#modal_scooter_charge').text(scooter_charge.toFixed('2'));
+            $('#modal_scooter_start_rent_date_time').text(scooter_started_date_time_rent);
+            $('#modal_scooter_rent_duration').text(scooter_rent_duration_at_minutes);
+            $('#modal_scooter_spent_money').text(scooter_spent_money);
+
+            startHeartbeatScooterUpdateTimeProcess(scooter_id);
+
+            $('#stop_scooter_rent')
+                .modal({
+                        onDeny: function(el) {
+                            stopHeartbeatScooterUpdateTimeProcess();
+                            return true;
+                        },
+                        onApprove: function(el) {
+                            stopScooterRentOnApproveHandler(scooter_id,
+                                                            scooter_user_id,
+                                                            scooter_rent_duration_at_minutes)
+                            .then(el => {
+                                if (el === true) {
+                                    stopHeartbeatScooterUpdateTimeProcess();
+                                    $('#stop_scooter_rent').modal('hide');
+                                    window.location.href = "/rents";
+                                }
+                            });
+
+                            return false;
+                        }
+                })
+                .modal('setting', {transition: 'horizontal flip', inverted: true, closable: false})
+                .modal('show refresh');
+        };
+    </script>
+</head>
+
+<body>
+<header class="header">
+    <div class="container container--small">
+        <div class="header__wrapper">
+            <div id="logo-container" class="logo">
+                <div class="logo__wrapper">
+                    <p class="logo__text">Самокат</p>
+                    <div class="logo__img">
+                        <img src="/images/logo.png" alt="logo" id="logo">
+                    </div>
+                </div>
+            </div>
+            <nav class="header__nav nav">
+                <ul class="nav__list">
+                    <li class="nav__item"><a class="nav__link" th:href="@{/}"><u>Главная</u></a></li>
+                    <li class="nav__item" sec:authorize="isAuthenticated()">
+                        <a class="nav__link" th:if="${#authorization.expression('not hasRole(''ADMIN'')')}" th:href="@{/rents}"><u>Арендованные самокаты</u></a>
+                    </li>
+                    <li class="nav__item" sec:authorize="hasRole('ADMIN')"><a class="nav__link" th:href="@{/users}"><u>Пользователи (ADMIN)</u></a></li>
+                    <li class="nav__item"><h5 class="nav__link" style="cursor: auto; color:black;"><u>Текущий пользователь:&nbsp;<b sec:authentication="name"></b></u></h5></li>
+                </ul>
+            </nav>
+            <nav id="login-logout-container" class="header__profile">
+                <ul class="header__control">
+                    <li sec:authorize="isAnonymous()">
+                        <a class="button button--small button--black" th:href="@{/login}">Вход</a>
+                    </li>
+                    <li sec:authorize="isAuthenticated()">
+                        <form th:action="@{/logout}" th:method="POST">
+                            <button type="submit" class="button button--small button--black">Выход</button>
+                        </form>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<main>
+    <section class="section" sec:authorize="!hasRole('ADMIN')">
+        <div class="section__wrapper">
+            <div class="container container--small">
+                <div class="balance">
+                    <div class="balance__wrapper">
+                        <div class="ui clearing segment">
+                            <div class="ui active" id="scooter-active-div">
+                                <div class="ui text disabled loader" id="balance-loader">Пополнение баланса...</div>
+                            </div>
+                            <div class="ui two column divided grid">
+                                <div class="row">
+                                    <div class="middle segment aligned column">
+                                        <div class="ui medium image">
+                                            <img src="/images/coin.png">
+                                        </div>
+                                        <div>
+                                            <span class="ui big red text" th:text="'Ваш баланс (руб.): ' + ${user_dtoo.balance}" ></span>
+                                            <span class="ui big red text" 
+                                                style="display: none" 
+                                                th:id="main_user_balance_stop_message" 
+                                                th:text="'Баланса не хватает для аренды. Заверешние через '" >
+                                                <b><u></u></b>
+                                            </span>
+                                        </div>
+                                    </div>  
+                                    <div class="middle aligned column">
+                                        <form class="ui form segment initial" 
+                                             id="user-rents-form" 
+                                             th:action="@{/rents/{user_id}/replenish (user_id = ${user_dtoo.id})}"
+                                             th:method="POST">
+
+                                            <div class="two fields">
+                                                <div class="field">
+                                                    <label>Номер карты. Пример: 0123456789.</label>
+                                                    <input placeholder="Номер карты..." name="regex" type="text">
+                                                </div>
+                                                <div class="field">
+                                                    <label>Сумма пополнения (руб.). Пример: 1234567891.1234</label>
+                                                    <input placeholder="Сумма пополнения..." name="decimal" type="text">
+                                                </div>
+                                            </div>
+                                            <div class="ui submit primary button">Пополнить</div>
+                                            <div class="ui error message"></div>
+                                        </form>
+                                    </div>
+
+<!--                                         <div class="ui two column centered vertically divided grid">
+                                            <div class="three column row">
+                                                <div class="left aligned column"><h4><u>Название:&nbsp;</u><b id="modal_scooter_name"></b></h4></div>
+                                                <div class="center aligned column"><h4><u>Заряд(часы):&nbsp;</u><b id="modal_scooter_charge"></b></h4></div>
+                                            </div>
+                                            <div class="one column row">
+                                                <div class="center aligned column"><h4><u>Начало аренды:&nbsp;</u><b id="modal_scooter_start_rent_date_time"></b></h4></div>
+                                                <div class="center aligned column"><h4><u>Время аренды(ч:м:с):&nbsp;</u><b id="modal_scooter_rent_duration"></b></h4></div>
+                                            </div>
+                                            <div class="three column row">
+                                                <div class="left aligned column"><h4><u>Текущая стоимость аренды (руб.):&nbsp;</u><b id="modal_scooter_spent_money"></b></h4></div>
+                                                <div class="center aligned column" id="modal_scooter_stop_rent_status" style="opacity: 1.00;">
+                                                    <h4><u>Аренда завершена?:&nbsp;</u><b>НЕТ</b></h4>
+                                                    <h4 id="modal_scooter_spent_total_money" style="display: none"><u>Итоговая стоимость (руб.):&nbsp;</u><b id="modal_scooter_spent_total_money_value">0.00</b></h4>
+                                                </div>
+                                            </div>
+                                        </div> -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+<!--                         <div class="balance__block">
+                        </div> -->
+<!--                         <div class="balance__block">
+                            <div class="section__content">
+
+                                <form class="ui form segment initial" id="user-rents-form">
+                                    <div class="two fields">
+                                        <div class="field">
+                                            <label>Номер карты. Пример: 0123456789.</label>
+                                            <input placeholder="Номер карты..." name="regex" type="text">
+                                        </div>
+                                        <div class="field">
+                                            <label>Сумма пополнения (руб.). Пример: 1234567891.1234</label>
+                                            <input placeholder="Сумма пополнения..." name="decimal" type="text">
+                                        </div>
+                                    </div>
+                                    <div class="ui submit primary button">Пополнить</div>
+                                    <div class="ui error message"></div>
+                                </form>
+                            </div> -->
+<!--                             <form class="form form--row "
+                                  th:action="@{/rents/{user_id}/replenish (user_id = ${user_dtoo.id})}"
+                                  th:method="POST">
+                                <input class="form__input form__input--middle" type="text" id="card_number"
+                                       placeholder="Номер карты">
+                                <input class="form__input form__input--middle" type="text" name="sum" id="sum"
+                                       placeholder="Сумма">
+                                <input class="button button--small button--black" type="submit"
+                                       value="Пополнить баланс">
+                            </form> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section__wrapper">
+            <div class="container container--small">
+                <div class="section__header">
+                    <h1 class="section__title">Арендованные самокаты</h1>
+                </div>
+                <div class="section__content">
+                    <div class="scooter" th:each="rent_dtoo : ${rent_dtoos}">
+                        <div class="scooter__wrapper scooter__wrapper--small">
+                            <div class="scooter__row scooter__row--column">
+                                <p class="section__title section__title--big section__title--left section__title--regular section__title--capitalize"
+                                   th:text="${rent_dtoo.scooterEntity.title}">Название</p>
+                                <p class="section__title section__title--regular section__title--capitalize"
+                                   th:id="main_scooter_current_charge-id- + ${rent_dtoo.scooterEntity.id}" 
+                                   th:text="'Заряд (ед.): ' + ${rent_dtoo.scooterEntity.charge} + 'ч.'">Заряд (ед.)
+                               </p>
+                               <p class="section__title section__title--regular section__title--capitalize" 
+                                    style="display: none" 
+                                    th:id="'main_scooter_dynamic_stop_seconds-id-' + ${rent_dtoo.scooterEntity.id}">
+                                    Заряд иссяк. Завершение через:<u></u>
+                                </p>
+                                <p class="section__title section__title--regular section__title--capitalize"
+                                   th:text="'Начало аренды: ' + ${rent_dtoo.startedDateAndTimeWithTimeZoneRentString}">
+                                    Начало аренды:</p>
+                                <p class="section__title section__title--regular section__title--capitalize hms_time_from_rent_start"
+								   th:id="'main-scooter-heartbeat-id-' + ${rent_dtoo.scooterEntity.id}"
+                                   th:text="'Время аренды (ч:м:с): 00:00:00'">
+                                    Время аренды (ч:м:с):&nbsp00:00:00</p>
+								<p class="section__title section__title--regular section__title--capitalize"
+                                   th:id="'main-scooter-heartbeat-spent-money-' + ${rent_dtoo.scooterEntity.id}"
+								   th:text="'Текущая стоимость аренды (руб./минута): ' + ${rent_dtoo.spentMoney}">
+									Текущая стоимость аренды (руб./минута):</p>
+                            </div>
+                        </div>
+                        <div class="scooter__footer">
+                            <input value="Завершить аренду"
+                                   th:onclick="stopScooterRentShowModalDialog([[${rent_dtoo.scooterEntity.id}]],
+																						[[${user_dtoo.id}]],
+																						[[${rent_dtoo.durationAtMinutes}]],
+										   												[[${rent_dtoo.scooterEntity.title}]],
+										   												[[${rent_dtoo.scooterEntity.charge}]],
+										   												[[${rent_dtoo.startedDateAndTimeWithTimeZoneRentString}]],
+										   												[[${rent_dtoo.spentMoney}]])"
+                                   class="button button--base button--black">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<footer class="footer">
+    <div class="footer__wrapper">
+        <div class="container">
+            <p class="footer__text">
+                Служба поддержки: <a href="tel:8-800-555-35-35">8-800-555-35-35</a>
+            </p>
+        </div>
+    </div>
+</footer>
+
+<div class="ui modal" id="stop_scooter_rent">
+    <div class="ui clearing segment">
+        <div class="ui active" id="scooter-active-div">
+            <div class="ui text disabled loader" id="scooter-loader">Завершение аренды самоката...</div>
+        </div>
+        <div class="header">
+            Вы действительно хотите завершить аренду данного самоката?
+        </div>
+        <div class="ui two column divided grid">
+            <div class="row">
+                <div class="column">
+                    <div class="ui medium image">
+                        <img src="/images/logo.png">
+                    </div>
+                </div>
+                <div class="middle aligned column">
+                    <div class="ui two column centered vertically divided grid">
+                        <div class="three column row">
+                            <div class="left aligned column"><h4><u>Название:&nbsp;</u><b id="modal_scooter_name"></b></h4></div>
+                            <div class="center aligned column"><h4><u>Заряд(часы):&nbsp;</u><b id="modal_scooter_charge"></b></h4></div>
+                            <div class="right aligned column">
+                                <div class="ui large red text" style="display: none" th:id="modal_scooter_dynamic_stop_seconds">
+                                    <h4><u>Заряд иссяк. Завершение через:&nbsp;</u><b></b></h4>
+                                </div>                                
+                            </div>
+                        </div>
+                        <div class="one column row">
+                            <div class="center aligned column"><h4><u>Начало аренды:&nbsp;</u><b id="modal_scooter_start_rent_date_time"></b></h4></div>
+                            <div class="center aligned column"><h4><u>Время аренды(ч:м:с):&nbsp;</u><b id="modal_scooter_rent_duration"></b></h4></div>
+                        </div>
+                        <div class="three column row">
+                            <div class="left aligned column"><h4><u>Текущая стоимость аренды (руб.):&nbsp;</u><b id="modal_scooter_spent_money"></b></h4></div>
+                            <div class="center aligned column" id="modal_scooter_stop_rent_status" style="opacity: 1.00;">
+                                <h4><u>Аренда завершена?:&nbsp;</u><b>НЕТ</b></h4>
+                                <h4 id="modal_scooter_spent_total_money" style="display: none"><u>Итоговая стоимость (руб.):&nbsp;</u><b id="modal_scooter_spent_total_money_value">0.00</b></h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="actions">
+            <div class="ui cancel right floated red button">
+                Закрыть
+            </div>
+            <div class="ui ok right floated green button" id="stop_scooter_rent_button">
+                Завершить
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

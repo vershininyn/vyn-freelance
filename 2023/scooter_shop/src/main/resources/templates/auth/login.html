@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="UTF-8">
+		<title>Логин</title>
+
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="/index.css">
+	</head>
+
+	<body>
+		<header class="header">
+			<div class="container container--small">
+				<div class="header__wrapper">
+					<div id="logo-container" class="logo">
+						<div class="logo__wrapper">
+							<p class="logo__text">Самокат</p>
+							<div class="logo__img">
+								<img src="/images/logo.png" alt="logo" id="logo">
+							</div>
+						</div>
+					</div>
+					<nav class="header__nav nav">
+						<ul class="nav__list">
+							<li class="nav__item"><a class="nav__link" th:href="@{/}">Главная</a></li>
+							<li class="nav__item" sec:authorize="isAuthenticated()"><a class="nav__link" th:href="@{/rents}">Арендованные самокаты</a></li>
+							<li class="nav__item" sec:authorize="hasRole('ADMIN')"><a  class="nav__link"th:href="@{/users}">Пользователи (ADMIN)</a></li>
+							<li class="nav__item"><h5 class="nav__link" style="cursor: auto; color:black;"><u>Текущий пользователь:&nbsp;<b sec:authentication="name"></b></u></h5></li>
+						</ul>
+					</nav>
+					<nav id="login-logout-container" class="header__profile">
+						<ul class="header__control">
+							<li sec:authorize="isAnonymous()">
+								<a class="button button--small button--black" th:href="@{/login}">Вход</a>
+							</li>
+							<li sec:authorize="isAuthenticated()">
+								<form th:action="@{/logout}" th:method="POST">
+									<button type="submit" class="button button--small button--black">Выход</button>
+								</form>
+							</li>
+						</ul>
+					</nav>
+				</div>
+			</div>
+		</header>
+		<main>
+			<section class="section">
+				<div class="section__wrapper">
+					<div class="container">
+						<div class="section__header">
+							<h1 class="section__title section__title--big section__title--capitalize">Вход</h1>
+						</div>
+
+						<div class="section__content">
+							<form class="form form--small" th:action="@{/login}" th:method="POST">
+								<input th:if="${_csrf} != null" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden">
+								<input class="form__input" id="name" name="username" type="text" placeholder="Имя пользователя">
+								<input class="form__input" id="password" name="password" type="password" placeholder="Пароль">
+								<input type="submit" value="Войти" class="button button--base button--black">
+							</form>
+							<form class="form form--small" th:action="@{/register}" th:method="GET">
+								<input type="submit" value="Регистрация" class="button button--base button--black">
+							</form>
+						</div>
+					</div>
+				</div>
+			</section>
+		</main>
+		<footer class="footer">
+			<div class="footer__wrapper">
+				<div class="container">
+					<p class="footer__text">
+						Служба поддержки: <a href="tel:8-800-555-35-35">8-800-555-35-35</a>
+					</p>
+				</div>
+			</div>
+		</footer>
+	</body>
+</html>

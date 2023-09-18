@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Самокаты</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container container--small">
+            <div class="header__wrapper">
+                <div id="logo-container" class="logo">
+                    <div class="logo__wrapper">
+                        <p class="logo__text">Самокат</p>
+                        <div class="logo__img">
+                            <img src="/images/logo.png" alt="logo" id="logo">
+                        </div>
+                    </div>
+                </div>
+                <nav class="header__nav nav">
+                    <ul class="nav__list">
+                        <li class="nav__item"><a class="nav__link" th:href="@{/}">Главная</a></li>
+                        <li class="nav__item" sec:authorize="isAuthenticated()">
+                            <a class="nav__link" th:if="${#authorization.expression('not hasRole(''ADMIN'')')}" th:href="@{/rents}"><u>Арендованные самокаты</u></a>
+                        </li>
+                        <li class="nav__item" sec:authorize="hasRole('ADMIN')"><a  class="nav__link"th:href="@{/users}">Пользователи (ADMIN)</a></li>
+                        <li class="nav__item"><h5 class="nav__link" style="cursor: auto; color:black;"><u>Текущий пользователь:&nbsp;<b sec:authentication="name"></b></u></h5></li>
+                    </ul>
+                </nav>
+                <nav id="login-logout-container" class="header__profile">
+                    <ul class="header__control">
+                        <li sec:authorize="isAnonymous()">
+                            <a class="button button--small button--black" th:href="@{/login}">Вход</a>
+                        </li>
+                        <li sec:authorize="isAuthenticated()">
+                            <form th:action="@{/logout}" th:method="POST">
+                                <button type="submit" class="button button--small button--black">Выход</button>
+                            </form>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+    <main>
+        <aside class="section" sec:authorize="hasRole('ADMIN')">
+            <div class="section__wrapper">
+                <div class="container">
+                    <form th:action="@{/scooters/add}">
+                        <input class="button button--base button--black button--center" type="submit" value="Добавить самокат (ADMIN)">
+                    </form>
+                </div>
+            </div>
+        </aside>
+        <section class="section">
+            <div class="section__wrapper">
+                <div class="container">
+                    <div class="section__header">
+                        <h1 class="section__title">Самокаты</h1>
+                    </div>
+                    <div class="section__content">
+                        <div th:each="scooter_dtoo : ${scooter_dtoos}" class="scooter-item">
+                            <div class="scooter-item__wrapper">
+                                <p class="section__text section__text--small">
+                                    <a class="button button--tiny button--black" th:href="@{/scooters/{id}(id=${scooter_dtoo.id})}" th:text="'Скутер: ' + ${scooter_dtoo.title}">
+                                        Скутер:
+                                    </a>
+                                </p>
+                                <p class="section__text section__text--small"  th:text="'Заряд: ' + ${scooter_dtoo.charge} + 'ч.'">Заряд</p>
+                                <p class="section__text section__text--small"  th:text="'Цена за старт: ' + ${scooter_dtoo.startPrice} + 'руб.'">Цена за старт</p>
+                                <p class="section__text section__text--small" th:text="'Аренда: ' + ${scooter_dtoo.rentPrice} + 'руб./мин.'">Аренда</p>
+                                <div sec:authorize="isAuthenticated()">
+                                    <p class="section__text section__text--small" 
+                                        th:if="${#authorization.expression('not hasRole(''ADMIN'')')}" 
+                                        th:text="(${scooter_dtoo.charge} > 0.0) ? 'Можно арендовать? ДА' : 'Можно арендовать? НЕТ'">
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section">
+            <div class="section__wrapper section__wrapper--big">
+                <div class="container">
+                    <div class="rules__grid">
+                        <div class="rules__block">
+                            <img src="images/rules.jpg" alt="" class="rules__img">
+                        </div>
+                        <div class="rules__block">
+                            <div class="rules__info">
+                                <ul class="rules__advantages rules-advantages">
+                                    <li class="rules-advantages__item">
+                                        <img src="images/cup.png" alt="" class="rules-advantages__img">
+                                    </li>
+                                    <li class="rules-advantages__item">
+                                        <img src="images/helm.png" alt="" class="rules-advantages__img">
+                                    </li>
+                                    <li class="rules-advantages__item">
+                                        <img src="images/alco.png" alt="" class="rules-advantages__img">
+                                    </li>
+                                    <li class="rules-advantages__item">
+                                        <img src="images/foot.png" alt="" class="rules-advantages__img">
+                                    </li>
+                                </ul>
+                                <ul class="rules__list rules-list">
+                                    <li class="rules-list__item">
+                                        <p class="rules__text">Один человек — один самокат</p>
+                                    </li>
+                                    <li class="rules-list__item">
+                                        <p class="rules__text">Лучше наденьте шлем</p>
+                                    </li>
+                                    <li class="rules-list__item">
+                                        <p class="rules__text">Катайтесь трезвыми</p>
+                                    </li>
+                                    <li class="rules-list__item">
+                                        <p class="rules__text">Через дорогу — только пешком</p>
+                                    </li>
+                                    <li class="rules-list__item">
+                                        <p class="rules__text">Уступайте пешеходам</p>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="footer">
+        <div class="footer__wrapper">
+            <div class="container">
+                <p class="footer__text">
+                    Служба поддержки: <a href="tel:8-800-555-35-35">8-800-555-35-35</a>
+                </p>
+            </div>
+        </div>
+    </footer>
+<!--    <script src="index.js"></script>-->
+</body>
+</html>

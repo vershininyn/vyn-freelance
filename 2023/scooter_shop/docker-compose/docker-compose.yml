@@ -1,0 +1,70 @@
+version: '3.9'
+
+networks:
+  scooter_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.5.0/8
+          gateway: 10.0.5.1
+
+services:
+  scooter-shop-dbms-postgresql:
+    image: postgres:14-bookworm
+    container_name: scooter-shop-postgresql
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=scooter_shop
+      - PGDATA=/var/lib/postgresql/data/mnt
+      - POSTGRES_HOST_AUTH_METHOD=md5
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data/mnt:rw
+#      -
+      - ./pg_init/postgresql.conf:/var/lib/postgresql/data/postgresql.conf:rw
+      - ./pg_init/00.create_extensions.sql:/docker-entrypoint-initdb.d/00.create_extensions.sql:rw
+      - ./pg_init/01.init_ddl_scooter_shop_db.sql:/docker-entrypoint-initdb.d/01.init_ddl_scooter_shop_db.sql:rw
+      - ./pg_init/02.init_dml_scooter_shop_db.sql:/docker-entrypoint-initdb.d/02.init_dml_scooter_shop_db.sql:rw
+    networks:
+      scooter_network:
+        ipv4_address: 10.0.5.3
+
+#docker compose config --quiet && printf "OK\n" || printf "ERROR\n"
+
+#  postgres_exporter:
+#    container_name: exporter_container
+#    image: prometheuscommunity/postgres-exporter:v0.10.1
+#    environment:
+#      DATA_SOURCE_NAME: "postgresql://postgres:postgres@10.0.5.3:5432/scooter_shop?sslmode=disable"
+##      DATA_SOURCE_URI: "scooter-shop-dbms-postgresql:5432/postgres?sslmode=disable"
+#      DATA_SOURCE_USER: "postgres"
+#      DATA_SOURCE_PASS: "postgres"
+#      PG_EXPORTER_EXTEND_QUERY_PATH: "/etc/postgres_exporter/queries.yaml"
+#    volumes:
+#      - ./queries.yaml:/etc/postgres_exporter/queries.yaml:rw
+#    ports:
+#      - "9187:9187"
+#    restart: always
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '1'
+#          memory: 500M
+#    networks:
+#      scooter_network:
+#        ipv4_address: 10.0.5.4

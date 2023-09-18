@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="UTF-8">
+		<title th:text="${scooter_dtoo.title}">Название самоката</title>
+
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+    	<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+
+    	<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.css">
+
+    	<script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.js"></script>
+
+    	<link rel="stylesheet" href="/index.css">
+
+		<script>
+			$(function () {
+           		$('#scooters-edit-form').form({
+					fields: {
+						title: {
+							optional: false,
+							rules: [{
+                            	type    : 'empty',                         
+        						prompt  : 'Название не может быть пустым!'
+							}]
+						},
+  						startPrice: {
+                        	optional   : false,
+    						rules: [{
+                            	type    : 'regExp[/^[0-9]{1,2}[.][0-9]{1,2}$/]',                         
+        						prompt  : 'Обратите, пожалуйста, внимание на примеры!'
+      						}]
+  						},
+                    	rentPrice: {
+                        	optional   : false,
+                        	rules: [{
+                            	type    : 'regExp[/^[0-9]{1,2}[.][0-9]{1,2}$/]',                         
+                            	prompt  : 'Обратите, пожалуйста, внимание на примеры!'
+                        	}]
+                    	},
+                    	charge: {
+                        	optional   : false,
+                        	rules: [{
+                            	type   : 'regExp[/^([0-9]*[1-9][0-9]*([.][0-9]+)?|[0]+[.][0-9]*[1-9][0-9]*)$/]',
+                            	prompt : 'Уровень заряда должен (быть строго больше 0.0) и (быть полноопределенным)!'
+                        	}]
+                    	}                           
+                	}
+			});
+         });
+		</script>
+	</head>
+
+	<body>
+		<header class="header">
+			<div class="container container--small">
+				<div class="header__wrapper">
+					<div id="logo-container" class="logo">
+						<div class="logo__wrapper">
+							<p class="logo__text">Самокат</p>
+							<div class="logo__img">
+								<img src="/images/logo.png" alt="logo" id="logo">
+							</div>
+						</div>
+					</div>
+					<nav class="header__nav nav">
+						<ul class="nav__list">
+							<li class="nav__item"><a class="nav__link" th:href="@{/}"><u>Главная</u></a></li>
+							<li class="nav__item" sec:authorize="isAuthenticated()">
+								<a class="nav__link" th:if="${#authorization.expression('not hasRole(''ADMIN'')')}" th:href="@{/rents}"><u>Арендованные самокаты</u></a>
+							</li>
+							<li class="nav__item" sec:authorize="hasRole('ADMIN')"><a  class="nav__link"th:href="@{/users}"><u>Пользователи (ADMIN)</u></a></li>
+							<li class="nav__item"><h5 class="nav__link" style="cursor: auto; color:black;"><u>Текущий пользователь:&nbsp;<b sec:authentication="name"></b></u></h5></li>
+						</ul>
+					</nav>
+					<nav id="login-logout-container" class="header__profile">
+						<ul class="header__control">
+							<li sec:authorize="isAnonymous()">
+								<a class="button button--small button--black" th:href="@{/login}">Вход</a>
+							</li>
+							<li sec:authorize="isAuthenticated()">
+								<form th:action="@{/logout}" th:method="POST">
+									<button type="submit" class="button button--small button--black">Выход</button>
+								</form>
+							</li>
+						</ul>
+					</nav>
+				</div>
+			</div>
+		</header>
+		<main>
+			<section class="section">
+				<div class="section__wrapper">
+					<div class="container">
+						<div class="scooter">
+								<div class="section__header">
+									<h1 class="section__title section__title--middle section__title--capitalize" th:text="'Редактивание самоката ' + ${scooter_dtoo.title}">Редактирование самоката</h1>
+								</div>
+								<div class="section__content">
+									<form th:action="@{/scooters/{id}/edit (id = ${scooter_dtoo.id})}" 
+											class="ui form segment initial" 
+											id="scooters-edit-form" 
+											th:method="PATCH"
+											th:object="${scooter_dtio}">
+                        						<div class="two fields">
+                            						<div class="field">
+                                						<label>Новое название. Пример: G5g5y6u123.</label>
+                                						<input placeholder="Новое название..." type="text" name="title" id="title" th:text="${scooter_dtoo.title}">
+    		                        					<span class="ui medium red text" th:if="${is_errors_exists} == true">Название скутера не 
+    		                        						может быть пустой строкой!
+                                						</span>
+                            						</div>
+                            						<div class="field">
+                                						<label>Новая начальная цена (руб.). Пример: 01.01</label>
+                                						<input placeholder="Начальная цена..." type="text" name="startPrice" id="startPrice">
+                            						</div>
+                        						</div>
+                        						<div class="two fields">
+                            						<div class="field">
+                                						<label>Новая цена аренды (руб./мин.). Пример: 01.01</label>
+                                						<input placeholder="Новая цена аренды..." type="text" id="rentPrice" name="rentPrice">
+                            						</div>
+                            						<div class="field">
+                                						<label>Новый начальный заряд (> 0.0). Пример: 1234.1234</label>
+                                						<input placeholder="Новый начальный заряд..." type="text" id="charge" name="charge">
+                            						</div>
+                        						</div>
+                        					<div class="ui submit primary button">Редактировать скутер</div>
+                        					<div class="ui error message"></div>
+                    				</form>
+							
+<!-- 									<form class="form form--row" th:action="@{/scooters/{id}/edit (id = ${scooter_dtoo.id})}" th:method="PATCH" th:object="${scooter_dtio}">
+										<input placeholder="Цена старт" class="form__input form__input--small" type="text" id="startPrice" name="startPrice" th:value="${scooter_dtoo.startPrice}">
+										<input placeholder="Цена аренда" class="form__input form__input--small" type="text" id="rentPrice" name="rentPrice" th:value="${scooter_dtoo.rentPrice}">
+										<input class="button button--base button--black" type="submit" value="Редактировать">					
+									</form> -->
+								</div>
+						</div>
+					</div>
+				</div>
+			</section>
+		</main>
+		<footer class="footer">
+			<div class="footer__wrapper">
+				<div class="container">
+					<p class="footer__text">
+						Служба поддержки: <a href="tel:8-800-555-35-35">8-800-555-35-35</a>
+					</p>
+				</div>
+			</div>
+		</footer>
+	</body>
+</html>

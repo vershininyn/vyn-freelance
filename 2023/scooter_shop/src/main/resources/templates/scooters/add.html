@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Добавить самокат</title>
+
+    <meta th:if="${_csrf} != null" th:name="_csrf" th:content="${_csrf.token}"/>
+    <meta th:if="${_csrf} != null" th:name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.3/dist/semantic.min.js"></script>
+
+    <link rel="stylesheet" href="/index.css">
+
+    <script>
+        var token = $("meta[name='_csrf']").attr("content");
+        var header = $("meta[name='_csrf_header']").attr("content");
+
+        if ((token) && (header)) {
+            $(document).on("ajaxSend", (event, jqxhr, settings) => {
+                console.log('token = ' + token + ' header = ' + header);
+                jqxhr.setRequestHeader(header, token);
+            });
+        }
+
+        $(function () {
+           $('#scooters-add-form').form({
+				fields: {
+  					startPrice: {
+                        optional   : false,
+    					rules: [{
+                            type    : 'regExp[/^[0-9]{1,2}[.][0-9]{1,2}$/]',                         
+        					prompt  : 'Обратите, пожалуйста, внимание на примеры!'
+      					}]
+  					},
+                    rentPrice: {
+                        optional   : false,
+                        rules: [{
+                            type    : 'regExp[/^[0-9]{1,2}[.][0-9]{1,2}$/]',                         
+                            prompt  : 'Обратите, пожалуйста, внимание на примеры!'
+                        }]
+                    },
+                    charge: {
+                        optional   : false
+                        rules: [{
+                            type   : 'regExp[/^([0-9]*[1-9][0-9]*([.][0-9]+)?|[0]+[.][0-9]*[1-9][0-9]*)$/]',
+                            prompt : 'Уровень заряда должен (быть строго больше 0.0) и (быть полноопределенным)!'
+                        }]
+                    }                           
+                }
+			});
+
+/*            var addScooter = () => {
+                let scooter_title = $('#add-scooter-form-title').text();
+                let scooter_start_price = $('#add-scooter-form-startPrice').text();
+                let scooter_start_rent = $('#add-scooter-form-rentPrice').text();
+                let scooter_start_charge = $('#add-sooter-form-startCharge').text();
+
+                $.ajax({
+                    type: "POST",
+                    contentType : 'application/json;charset=UTF-8',
+                    dataType : 'json',
+                    url: "/scooters/add",
+                    data: JSON.stringify({scooter_title_dto: scooter_title, 
+                        scooter_start_price_dto: scooter_start_price, 
+                        scooter_start_rent_dto: scooter_start_rent,
+                        scooter_start_charge_dto: scooter_start_charge}),
+                    async: true,
+                    success: function(jsonMap) {
+                        alert('Scooter is saved. Redirect to ' + jsonMap);
+                        // window.location.href = "/";
+                    },
+                    error: function (jqXHR, exception) {
+                        alert('Error');
+                    }
+                });
+            }*/
+        });
+    </script>
+</head>
+
+<body>
+<header class="header">
+    <div class="container container--small">
+        <div class="header__wrapper">
+            <div id="logo-container" class="logo">
+                <div class="logo__wrapper">
+                    <p class="logo__text">Самокат</p>
+                    <div class="logo__img">
+                        <img src="/images/logo.png" alt="logo" id="logo">
+                    </div>
+                </div>
+            </div>
+            <nav class="header__nav nav">
+                <ul class="nav__list">
+                    <li class="nav__item"><a class="nav__link" th:href="@{/}"><u>Главная</u></a></li>
+                    <li class="nav__item" sec:authorize="isAuthenticated()">
+                        <a class="nav__link" th:if="${#authorization.expression('not hasRole(''ADMIN'')')}" th:href="@{/rents}"><u>Арендованные самокаты</u></a>
+                    </li>
+                    <li class="nav__item" sec:authorize="hasRole('ADMIN')"><a class="nav__link" th:href="@{/users}"><u>Пользователи
+                        (ADMIN)</u></a></li>
+                    <li class="nav__item"><h5 class="nav__link" style="cursor: auto; color:black;"><u>Текущий
+                        пользователь:&nbsp;<b sec:authentication="name"></b></u></h5></li>
+                </ul>
+            </nav>
+            <nav id="login-logout-container" class="header__profile">
+                <ul class="header__control">
+                    <li sec:authorize="isAnonymous()">
+                        <a class="button button--small button--black" th:href="@{/login}">Вход</a>
+                    </li>
+                    <li sec:authorize="isAuthenticated()">
+                        <form th:action="@{/logout}" th:method="POST">
+                            <button type="submit" class="button button--small button--black">Выход</button>
+                        </form>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<main>
+    <section class="section">
+        <div class="section__wrapper">
+            <div class="container">
+                <div class="section__header">
+                    <h1 class="section__title">Добавить самокат</h1>
+                </div>
+                <div class="section__content">
+<!--                     <form th:action="@{/scooters/add}" 
+                        class="ui form segment initial" 
+                        id="scooters-add-form"
+                        th:method="POST"
+                        th:object="${scooter_dtio}">
+
+                        <div class="two fields">
+                            <div class="field">
+                                <label>Название. Пример: G5g5y6u123.</label>
+                                <input placeholder="Название..." id="add-scooter-form-title" type="text">
+                            </div>
+                            <div class="field">
+                                <label>Начальная цена (руб.). Пример: 1234.12</label>
+                                <input placeholder="Начальная цена..." id="add-scooter-form-startPrice" name="regex" type="text">
+                            </div>
+                        </div>
+                        <div class="two fields">
+                            <div class="field">
+                                <label>Цена аренды (руб./мин.). Пример: 1234.12</label>
+                                <input placeholder="Цена аренды..." id="add-scooter-form-rentPrice" name="regex" type="text">
+                            </div>
+                            <div class="field">
+                                <label>Начальный заряд (> 0.0). Пример: 1234.123</label>
+                                <input placeholder="Начальный заряд..." id="add-scooter-form-startCharge" name="decimal" type="text">
+                            </div>
+                        </div>
+                        <div class="ui submit primary button" ondclick="addScooter();">Добавить новый скутер</div>
+                        <div class="ui error message"></div>
+                    </form> -->
+                   <form th:action="@{/scooters/add}" 
+                        class="ui form segment initial" 
+                        id="scooters-add-form"
+                        th:method="POST"
+                        th:object="${scooter_dtio}">
+                        <div class="two fields">
+                            <div class="field">
+                                <label>Название. Пример: G5g5y6u123.</label>
+                                <input placeholder="Название..." type="text" name="title" id="title">
+                                <span class="ui medium red text" 
+                                    th:errors="*{title}" 
+                                    th:if="${is_errors_exists} == true">Скутер с таким названием уже существует
+                                </span>
+                            </div>
+                            <div class="field">
+                                <label>Начальная цена (руб.). Пример: 1234.12</label>
+                                <input placeholder="Начальная цена..." type="text" name="startPrice" id="startPrice">
+                            </div>
+                        </div>
+                        <div class="two fields">
+                            <div class="field">
+                                <label>Цена аренды (руб./мин.). Пример: 1234.12</label>
+                                <input placeholder="Цена аренды..." type="text" name="rentPrice" id="rentPrice">
+                            </div>
+                            <div class="field">
+                                <label>Начальный заряд (> 0.0). Пример: 1234.123</label>
+                                <input placeholder="Начальный заряд..." type="text" name="charge" id="charge">
+                            </div>
+                        </div>
+                        <div class="ui submit primary button">Добавить новый скутер</div>
+                        <div class="ui error message"></div>
+                    </form>
+                </div>
+                <!--						<div class="section__content">-->
+                <!--							<form class="form form&#45;&#45;row" th:action="@{/scooters/add}" th:method="POST" th:object="${scooter_dtio}">-->
+                <!--								<input class="form__input form__input&#45;&#45;small" type="text" name="title" id="title" placeholder="Название">-->
+                <!--								<input class="form__input form__input&#45;&#45;small" type="text" name="startPrice" id="startPrice" placeholder="Старт цена">-->
+                <!--								<input class="form__input form__input&#45;&#45;middle" type="text" name="rentPrice" id="rentPrice" placeholder="Цена (руб./мин.)">-->
+                <!--								<input class="form__input form__input&#45;&#45;small" type="text" name="charge" id="charge" placeholder="Заряд">-->
+
+                <!--								<input type="submit" value="Добавить" class="button button&#45;&#45;base button&#45;&#45;black">-->
+                <!--							</form>-->
+                <!--						</div>-->
+            </div>
+        </div>
+    </section>
+</main>
+<footer class="footer">
+    <div class="footer__wrapper">
+        <div class="container">
+            <p class="footer__text">
+                Служба поддержки: <a href="tel:8-800-555-35-35">8-800-555-35-35</a>
+            </p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" xmlns:th="http://www.thymeleaf.org">>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"
+            integrity="sha512-3gJwYpMe3QewGELv8k/BX9vcqhryRdzRMxVfq6ngyWXwo03GFEzjsUm8Q7RZcHPHksttq7/GFoxjCVUjkjvPdw=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer">
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscore-min.js"
+            integrity="sha512-2V49R8ndaagCOnwmj8QnbT1Gz/rie17UouD9Re5WxbzRVUGoftCu5IuqqtAM9+UC3fwfHCSJR1hkzNQh/2wdtg=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer">
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.js"
+            integrity="sha512-Xo0Jh8MsOn72LGV8kU5LsclG7SUzJsWGhXbWcYs2MAmChkQzwiW/yTQwdJ8w6UA9C6EVG18GHb/TrYpYCjyAQw=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer">
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
+          integrity="sha512-KXol4x3sVoO+8ZsWPFI/r5KBVB/ssCGB5tsv2nVOKwLg33wTFP3fmnXa47FdSVIshVTgsYk/1734xSk9aFIa4A=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"/>
+
+<!--window.addEventListener(
+  "load",
+  () => {
+    const paragraph = document.querySelector("p");
+    const button = document.querySelector("button");
+
+    // Adding click event handler to button.
+    button.addEventListener("click", detectWebGLContext, false);
+    function detectWebGLContext() {
+      // Create canvas element. The canvas is not added to the
+      // document itself, so it is never displayed in the
+      // browser window.
+      const canvas = document.createElement("canvas");
+
+      // Get WebGLRenderingContext from canvas element.
+      const gl =
+        canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+
+      // Report the result.
+      paragraph.textContent =
+        gl instanceof WebGLRenderingContext
+          ? "Congratulations! Your browser supports WebGL."
+          : "Failed. Your browser or device may not support WebGL.";
+    }
+  },
+  false,
+);-->
+
+
+    <script type="text/javascript">
+        $(function() {
+            $("#play-button").on("click", function() {
+                let canvas = $("#webgl-canvas");
+                let gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+                let isReady = gl instanceof WebGLRenderingContext;
+
+                let statusText = (isReady) ? ("Ваш браузер поддерживает WebGL! Все готово к работе!") : ("К сожалению Ваш браузер не поддерживает WebGL!");
+                $("#webgl-status").text(statusText);
+
+                if (isReady) {
+
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="ui one column centered aligned grid">
+    <div class="ten wide column">
+        <div class="ui basic segment">
+            <button class="small green ui labeled icon button" id="play-button" isConnected="false">
+                <i class="play icon"></i>
+                Play
+            </button>
+            <div class="ui large label">
+                Status:
+            </div>
+            <div class="ui small transparent input">
+                <input type="text" placeholder="" id="webgl-status" style="width: 100mm;">
+            </div>
+        </div>
+    </div>
+</div>
+<div class="ui one column centered aligned grid">
+    <div class="ten wide column">
+        <div class="ui basic segment">
+            <canvas id="webgl-canvas" width="1130mm" height="600mm" style="border:1px solid red;">
+                
+            </canvas>
+        </div>
+    </div>
+</div>
+
+<div class="ui modal">
+    <i class="close icon"></i>
+    <div class="header">
+        Connection status
+    </div>
+    <div class="content" id="verify-host-and-port-and-xml">
+
+    </div>
+    <div class="actions">
+        <div class="ui approve green right labeled icon button">
+            Close
+            <i class="checkmark icon"></i>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

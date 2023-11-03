@@ -23,52 +23,80 @@
             referrerpolicy="no-referrer">
     </script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscore-min.js" 
+            integrity="sha512-2V49R8ndaagCOnwmj8QnbT1Gz/rie17UouD9Re5WxbzRVUGoftCu5IuqqtAM9+UC3fwfHCSJR1hkzNQh/2wdtg==" 
+            crossorigin="anonymous" 
+            referrerpolicy="no-referrer">
+    </script>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"
           integrity="sha512-KXol4x3sVoO+8ZsWPFI/r5KBVB/ssCGB5tsv2nVOKwLg33wTFP3fmnXa47FdSVIshVTgsYk/1734xSk9aFIa4A=="
           crossorigin="anonymous"
           referrerpolicy="no-referrer"/>
 
-<!--window.addEventListener(
-  "load",
-  () => {
-    const paragraph = document.querySelector("p");
-    const button = document.querySelector("button");
-
-    // Adding click event handler to button.
-    button.addEventListener("click", detectWebGLContext, false);
-    function detectWebGLContext() {
-      // Create canvas element. The canvas is not added to the
-      // document itself, so it is never displayed in the
-      // browser window.
-      const canvas = document.createElement("canvas");
-
-      // Get WebGLRenderingContext from canvas element.
-      const gl =
-        canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-
-      // Report the result.
-      paragraph.textContent =
-        gl instanceof WebGLRenderingContext
-          ? "Congratulations! Your browser supports WebGL."
-          : "Failed. Your browser or device may not support WebGL.";
-    }
-  },
-  false,
-);-->
-
-
     <script type="text/javascript">
+        var trajectoryFunction = (x) => {
+            return 30.0 + Math.pow(0.93, -90.0 + (x/15.0));
+        }
+
+        var generateTrajectoryByFunction = (tFunction, xMin, xMax, step) => {
+            let path = [];
+            let index = 0;
+
+            for (let xCurrent = xMin; xCurrent <= xMax; xCurrent += step) {
+                path[index++] = {'x': xCurrent, 'y': tFunction(xCurrent)};
+            }
+
+            return path;
+        }
+
+        var trajectoryPath = generateTrajectoryByFunction(trajectoryFunction, 0.0, 1000.0, 15.0);
+
+        var shiftProcessId = null;
+        var trajectoryVertexCount = _.size(trajectoryPath);
+
+        console.log('trajectoryVertexCount = ' + trajectoryVertexCount);
+
+        var currentVertextIndex = trajectoryVertexCount;
+        var gl = null;
+
+        var doShiftHandler = () => {
+            if ((currentVertextIndex <= 0) && (shiftProcessId)) {
+                clearInterval(shiftProcessId);
+
+                currentVertextIndex = trajectoryVertexCount;
+                shiftProcessId = null;
+
+                return;
+            } 
+
+            let x = trajectoryPath[trajectoryVertexCount - currentVertextIndex].x;
+            let y = trajectoryPath[trajectoryVertexCount - currentVertextIndex].y;
+
+            gl.scissor(x, y, 40.0, 40.0);
+            gl.clearColor(1.0, 1.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            currentVertextIndex -= 1;
+        }
+
         $(function() {
             $("#play-button").on("click", function() {
-                let canvas = $("#webgl-canvas");
-                let gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-                let isReady = gl instanceof WebGLRenderingContext;
+                let canvas = document.getElementById("webgl-canvas");
 
-                let statusText = (isReady) ? ("Ваш браузер поддерживает WebGL! Все готово к работе!") : ("К сожалению Ваш браузер не поддерживает WebGL!");
-                $("#webgl-status").text(statusText);
+                gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+                let isReady = (gl) && (gl instanceof WebGLRenderingContext);
+
+                let statusText = (isReady) ? ("Ваш браузер поддерживает WebGL! Все готово к работе!") : ("К сожалению, Ваш браузер не поддерживает WebGL!");
+                $("#webgl-status").val(statusText);
 
                 if (isReady) {
+                    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+                    gl.enable(gl.SCISSOR_TEST);
 
+                    if (!shiftProcessId) {
+                        shiftProcessId = setInterval(doShiftHandler, 100);
+                    }
                 }
             });
         });
@@ -100,7 +128,16 @@
         </div>
     </div>
 </div>
-
+<div class="ui one column centered aligned grid">
+    <div class="ten wide column">
+        <div class="ui basic segment">
+Ярослав, нужно средствами html5 либо путем использования дополнительных технологий (возможно WebGL
+реализовать заставку для браузерной игры,которая появляется с начальным входом юзера на сайт, а потом исчезает,заставка такая  — из верхнего левого угла экрана прыгает лимончик(для начала можно просто шарик желтого цвета который выпрыгивает прыжками в цнетр экрана затем превращается в букву о и чуть ниже центральной горизонтали экрана появляются остальные заглавные буквы синхронно с попаданием в надпись LeMONGAMES (лимончик он же шарик превращается в букву O или лучше в букву e
+и в момент появления надписи включается звуковая фонограмма LeMONGAMES с ударением на e както так
+p.s домен lemongames я занял, пока
+        </div>
+    </div>
+</div>
 <div class="ui modal">
     <i class="close icon"></i>
     <div class="header">

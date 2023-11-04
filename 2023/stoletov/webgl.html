@@ -36,7 +36,8 @@
 
     <script type="text/javascript">
         var trajectoryFunction = (x) => {
-            return 30.0 + Math.pow(0.93, -90.0 + (x/15.0));
+            // return 30.0 + Math.pow(0.93, -90.0 + (x/15.0));
+            return 300.0 + (0.52*Math.abs(Math.cos(x/12.0)))*Math.pow(0.92652240538,-90.0 + x/5.0);
         }
 
         var generateTrajectoryByFunction = (tFunction, xMin, xMax, step) => {
@@ -50,7 +51,7 @@
             return path;
         }
 
-        var trajectoryPath = generateTrajectoryByFunction(trajectoryFunction, 0.0, 1000.0, 15.0);
+        var trajectoryPath = generateTrajectoryByFunction(trajectoryFunction, 0.0, 450.0, 3.0);
 
         var shiftProcessId = null;
         var trajectoryVertexCount = _.size(trajectoryPath);
@@ -138,21 +139,5 @@ p.s домен lemongames я занял, пока
         </div>
     </div>
 </div>
-<div class="ui modal">
-    <i class="close icon"></i>
-    <div class="header">
-        Connection status
-    </div>
-    <div class="content" id="verify-host-and-port-and-xml">
-
-    </div>
-    <div class="actions">
-        <div class="ui approve green right labeled icon button">
-            Close
-            <i class="checkmark icon"></i>
-        </div>
-    </div>
-</div>
-
 </body>
 </html>
